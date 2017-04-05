@@ -182,7 +182,7 @@ uint32_t HollowHeap<I, V, C>::size() const {
 
 template<typename I, typename V, typename C>
 bool HollowHeap<I, V, C>::empty() const {
-	return size == 0;
+	return size_ == 0;
 }
 
 template<typename I, typename V, typename C>
