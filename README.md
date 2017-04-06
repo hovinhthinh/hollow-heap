@@ -30,6 +30,7 @@ bool Push(uint32_t id, V value);
 ```
 * push value with corresponding id in to the heap
 * return true if pushing successfully, false if id is already pushed
+* if the heap is constructed with explicit (n_ids), id should be in between [0..n_ids-1], the data structure won't check for this.
 ```
 void Push(V value);
 ```
@@ -50,6 +51,7 @@ bool Update(uint32_t id, V value);
 * update the value associated with id
 * return true if updating successfully, false if id is not pushed yet, or the value to be updated is invalid (not strictly less than current value for min-heap, or not strictly greater than current value for max-heap)
 ### other operations
+* if the heap is constructed with explicit (n_ids), id should be in between [0..n_ids-1], the data structure won't check for this.
 ```
 uint32_t size() const;
 bool empty() const;
