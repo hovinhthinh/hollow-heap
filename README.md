@@ -50,12 +50,26 @@ bool Update(uint32_t id, V value);
 * update the value associated with id
 * return true if updating successfully, false if id is not pushed yet, or the value to be updated is invalid (not strictly less than current value for min-heap, or not strictly greater than current value for max-heap)
 ### other operations
-* if the heap is constructed with explicit (n_ids), id should be in between [0..n_ids-1], the data structure won't check for this.
+* if the heap is constructed with explicit n_ids, id should be in between [0..n_ids-1], the data structure won't check for this.
 ```
 uint32_t size() const;
 bool empty() const;
 ```
 * these function should be used to control the heap; Top(), Pop() do not check if the heap is empty, so please call these function before calling Top() or Pop()
+```
+bool ContainsId(uint32_t id) const;
+```
+* check if the id is pushed; if the heap is constructed with explicit n_ids, id should be in between [0..n_ids-1]
+```
+V Get(uint32_t id) const;
+```
+* get the value associated with id; the data structure assume that id is already pushed, so before calling this function, please call `ContainsId(uint32_t id)` to check for the availability of id.
+* id should be in between [0..n_ids-1] for explicit n_ids
+```
+void PopId(uint32_t id);
+```
+* pop the value associated with id; the data structure assume that id is already pushed, so please ensure this by calling `ContainsId(uint32_t id)` first.
+* id should be in between [0..n_ids-1] for explicit n_ids
 ## example
 ```
 #include "hheap.h"
