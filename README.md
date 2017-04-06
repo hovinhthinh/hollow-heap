@@ -1,6 +1,6 @@
 # hollow-heap
 Implementation of Hollow Heap (see document here [https://arxiv.org/abs/1510.06535](https://arxiv.org/abs/1510.06535))
-Using this data structure could reduce the complexity of Dijkstra algorithm to O(M + NlogN) instead of O(MlogN) when using binary heap
+Using this data structure could reduce the complexity of Dijkstra algorithm to O(M + NlogN) instead of O(MlogN) when using binary heap, which is very efficient for dense graph
 ## amortized complexity
 ```
 Push: O(1)
