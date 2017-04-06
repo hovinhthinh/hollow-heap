@@ -60,16 +60,19 @@ bool empty() const;
 bool ContainsId(uint32_t id) const;
 ```
 * check if the id is pushed; if the heap is constructed with explicit n_ids, id should be in between [0..n_ids-1]
+* complexity: O(1)
 ```
 V Get(uint32_t id) const;
 ```
 * get the value associated with id; the data structure assume that id is already pushed, so before calling this function, please call `ContainsId(uint32_t id)` to check for the availability of id.
 * id should be in between [0..n_ids-1] for explicit n_ids
+* complexity: O(1)
 ```
 void PopId(uint32_t id);
 ```
 * pop the value associated with id; the data structure assume that id is already pushed, so please ensure this by calling `ContainsId(uint32_t id)` first.
 * id should be in between [0..n_ids-1] for explicit n_ids
+* complexity: amortized O(logN)
 ## example
 ```
 #include "hheap.h"
