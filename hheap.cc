@@ -252,7 +252,7 @@ V HollowHeap<V, C>::Get(uint32_t id) const {
   if (n_ids_) {
     return node_map_arr_[id]->value;
   } else {
-    return node_map_[id]->value;
+    return node_map_.find(id)->second->value;
   }
 }
 
