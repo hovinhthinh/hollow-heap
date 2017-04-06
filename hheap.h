@@ -14,6 +14,7 @@
 #define _HOLLOW_HEAP
 
 #include <functional>
+#include <memory>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -25,51 +26,56 @@
 namespace {
 template<typename I, typename V>
 struct Node {
-	I id;
-	V value;
+  I id;
+  V value;
 
-	uint32_t rank;
-	bool is_hollow;
-	bool is_root;
+  uint32_t rank;
+  bool is_hollow;
+  bool is_root;
 
-	Node<I, V> *next_sibling; // siblings are stored in decreasing order of rank
-	Node<I, V> *head_childs; // point to the first child of childs vector
+  Node<I, V> *next_sibling; // siblings are stored in decreasing order of rank
+  Node<I, V> *head_childs; // point to the first child of childs vector
 
-	Node(I _id, V _value);
+  Node(I _id, V _value);
 };
 }
 
 template<typename I, typename V, typename C = std::less<V>>
 class HollowHeap {
 private:
-	uint32_t size_;
-	C comparator_;
-	Node<I, V> *min_id_;
+  uint32_t size_;
+  C comparator_;
+  Node<I, V> *min_id_;
 
-	std::vector<std::vector<Node<I, V>*>*> roots_of_rank_;
-	std::unordered_map<I, Node<I, V>*> node_map_;
+  std::vector<std::vector<Node<I, V>*>*> roots_of_rank_;
+  std::unordered_map<I, Node<I, V>*> node_map_;
 
-	std::vector<Node<I, V>*>& RootsAtRank(uint32_t rank);
+  uint32_t n_ids_;
+  std::unique_ptr<Node<I, V>*[]> node_map_arr_;
 
-	Node<I, V>* link(Node<I, V> *r1, Node<I, V> *r2);
+  std::vector<Node<I, V>*>& RootsAtRank(uint32_t rank);
 
-	void DeleteNodeRecursively(Node<I, V> *node);
+  Node<I, V>* link(Node<I, V> *r1, Node<I, V> *r2);
+
+  void DeleteNodeRecursively(Node<I, V> *node);
+
 public:
-	HollowHeap();
+  HollowHeap();
+  HollowHeap(uint32_t n_ids); // indexed from 0 -> n_ids - 1
 
-	bool Push(I id, V value);
+  bool Push(I id, V value);
 
-	std::pair<I, V> Top() const;
+  std::pair<I, V> Top() const;
 
-	void Pop();
+  void Pop();
 
-	bool Update(I id, V value);
+  bool Update(I id, V value);
 
-	uint32_t size() const;
+  uint32_t size() const;
 
-	bool empty() const;
+  bool empty() const;
 
-	~HollowHeap();
+  ~HollowHeap();
 };
 
 #include "hheap.cc"
