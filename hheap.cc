@@ -1,43 +1,42 @@
 // template impl (included from header)
 // #include "hheap.h"
 
-template<typename I, typename V>
-Node<I, V>::Node(I _id, V _value) :
+template<typename V>
+Node<V>::Node(int32_t _id, V _value) :
     id(_id), value(_value), rank(0), is_hollow(false), is_root(true), next_sibling(
         nullptr), head_childs(nullptr) {
 }
 
-template<typename I, typename V, typename C>
-inline std::vector<Node<I, V>*>& HollowHeap<I, V, C>::RootsAtRank(
-    uint32_t rank) {
+template<typename V, typename C>
+inline std::vector<Node<V>*>& HollowHeap<V, C>::RootsAtRank(uint32_t rank) {
   if (roots_of_rank_.size() <= rank) {
     uint32_t old_size = roots_of_rank_.size();
     roots_of_rank_.resize(rank + 1, nullptr);
     for (uint32_t i = old_size; i <= rank; ++i) {
-      roots_of_rank_[i] = new std::vector<Node<I, V>*>();
+      roots_of_rank_[i] = new std::vector<Node<V>*>();
     }
   }
 
   return *roots_of_rank_[rank];
 }
 
-template<typename I, typename V, typename C>
-HollowHeap<I, V, C>::HollowHeap() :
+template<typename V, typename C>
+HollowHeap<V, C>::HollowHeap() :
     size_(0), comparator_(), min_id_(nullptr), roots_of_rank_(), node_map_(), n_ids_(
         0), node_map_arr_(nullptr) {
 }
 
-template<typename I, typename V, typename C>
-HollowHeap<I, V, C>::HollowHeap(uint32_t n_ids) :
+template<typename V, typename C>
+HollowHeap<V, C>::HollowHeap(uint32_t n_ids) :
     size_(0), comparator_(), min_id_(nullptr), roots_of_rank_(), node_map_(), n_ids_(
-        n_ids), node_map_arr_(new Node<I, V>*[n_ids_]) {
-  Node<I, V> **arr = node_map_arr_.get();
+        n_ids), node_map_arr_(new Node<V>*[n_ids_]) {
+  Node<V> **arr = node_map_arr_.get();
   std::fill(arr, arr + n_ids_, nullptr);
 }
 
 // return false if id is already inserted
-template<typename I, typename V, typename C>
-bool HollowHeap<I, V, C>::Push(I id, V value) {
+template<typename V, typename C>
+bool HollowHeap<V, C>::Push(uint32_t id, V value) {
   if (n_ids_) {
     if (node_map_arr_[id] != nullptr) {
       return false;
@@ -48,7 +47,8 @@ bool HollowHeap<I, V, C>::Push(I id, V value) {
     }
   }
 
-  Node<I, V> *new_node = new Node<I, V>(id, value);
+  Node<V> *new_node = new Node<V>(id, value);
+
   if (n_ids_) {
     node_map_arr_[id] = new_node;
   } else {
@@ -64,14 +64,26 @@ bool HollowHeap<I, V, C>::Push(I id, V value) {
   return true;
 }
 
-template<typename I, typename V, typename C>
-std::pair<I, V> HollowHeap<I, V, C>::Top() const {
+template<typename V, typename C>
+void HollowHeap<V, C>::Push(V value) {
+  Node<V> *new_node = new Node<V>(-1, value);
+
+  RootsAtRank(0).emplace_back(new_node);
+
+  ++size_;
+  if (min_id_ == nullptr || comparator_(value, min_id_->value)) {
+    min_id_ = new_node;
+  }
+}
+
+template<typename V, typename C>
+std::pair<int32_t, V> HollowHeap<V, C>::Top() const {
   return std::make_pair(min_id_->id, min_id_->value);
 }
 
-template<typename I, typename V, typename C>
-inline Node<I, V>* HollowHeap<I, V, C>::link(Node<I, V> *r1, Node<I, V> *r2) {
-  Node<I, V>* temp;
+template<typename V, typename C>
+inline Node<V>* HollowHeap<V, C>::link(Node<V> *r1, Node<V> *r2) {
+  Node<V> *temp;
   if (comparator_(r1->value, r2->value)) {
     temp = r1->head_childs;
     r1->head_childs = r2;
@@ -89,24 +101,26 @@ inline Node<I, V>* HollowHeap<I, V, C>::link(Node<I, V> *r1, Node<I, V> *r2) {
   }
 }
 
-template<typename I, typename V, typename C>
-void HollowHeap<I, V, C>::Pop() {
-  Node<I, V> *temp, *temp_2;
+template<typename V, typename C>
+void HollowHeap<V, C>::Pop() {
+  Node<V> *temp, *temp_2;
   // remove id & make top hollow
-  if (n_ids_) {
-    node_map_arr_[min_id_->id] = nullptr;
-  } else {
-    node_map_.erase(min_id_->id);
+  if (min_id_->id >= 0) {
+    if (n_ids_) {
+      node_map_arr_[min_id_->id] = nullptr;
+    } else {
+      node_map_.erase(min_id_->id);
+    }
   }
   min_id_->is_hollow = true;
 
   // recursively remove hollow roots
   for (auto it = roots_of_rank_.rbegin(); it != roots_of_rank_.rend(); ++it) {
-    std::vector<Node<I, V>*> &l = **it;
+    std::vector<Node<V>*> &l = **it;
     uint32_t non_hollow = 0;
     for (uint32_t i = 0; i < l.size(); ++i) {
       if (l[i]->is_hollow) { // hollow node
-        Node<I, V> *current = l[i]->head_childs;
+        Node<V> *current = l[i]->head_childs;
         while (current) {
           roots_of_rank_[current->rank]->emplace_back(current);
           current->is_root = true;
@@ -125,7 +139,7 @@ void HollowHeap<I, V, C>::Pop() {
   // re-link roots and shrink roots vector
   int32_t max_rank = -1;
   for (uint32_t i = 0; i < roots_of_rank_.size(); ++i) {
-    std::vector<Node<I, V>*> &l = *roots_of_rank_[i];
+    std::vector<Node<V>*> &l = *roots_of_rank_[i];
     if (l.size()) {
       max_rank = l.front()->rank;
     }
@@ -148,7 +162,7 @@ void HollowHeap<I, V, C>::Pop() {
   // update min-id
   min_id_ = nullptr;
   for (auto it = roots_of_rank_.begin(); it != roots_of_rank_.end(); ++it) {
-    std::vector<Node<I, V>*> &l = **it;
+    std::vector<Node<V>*> &l = **it;
     if (l.size()) {
       if (min_id_ == nullptr || comparator_(l[0]->value, min_id_->value)) {
         min_id_ = l[0];
@@ -160,10 +174,10 @@ void HollowHeap<I, V, C>::Pop() {
   --size_;
 }
 
-// return false if id is not inserted yet, or updated value is invalid
-template<typename I, typename V, typename C>
-bool HollowHeap<I, V, C>::Update(I id, V value) {
-  Node<I, V> *current_node;
+// return false if id is not inserted yet, or updating value is invalid
+template<typename V, typename C>
+bool HollowHeap<V, C>::Update(uint32_t id, V value) {
+  Node<V> *current_node;
   if (n_ids_) {
     current_node = node_map_arr_[id];
     if (current_node == nullptr || !comparator_(value, current_node->value)) {
@@ -190,11 +204,11 @@ bool HollowHeap<I, V, C>::Update(I id, V value) {
   current_node->is_hollow = true;
 
   // build new node
-  Node<I, V> *new_node = new Node<I, V>(id, value);
+  Node<V> *new_node = new Node<V>(id, value);
 
   if (current_node->rank > 2) {
     new_node->rank = current_node->rank - 2;
-    Node<I, V> *second_child = current_node->head_childs->next_sibling;
+    Node<V> *second_child = current_node->head_childs->next_sibling;
     new_node->head_childs = second_child->next_sibling;
     second_child->next_sibling = nullptr;
   }
@@ -214,19 +228,19 @@ bool HollowHeap<I, V, C>::Update(I id, V value) {
   return true;
 }
 
-template<typename I, typename V, typename C>
-uint32_t HollowHeap<I, V, C>::size() const {
+template<typename V, typename C>
+uint32_t HollowHeap<V, C>::size() const {
   return size_;
 }
 
-template<typename I, typename V, typename C>
-bool HollowHeap<I, V, C>::empty() const {
+template<typename V, typename C>
+bool HollowHeap<V, C>::empty() const {
   return size_ == 0;
 }
 
-template<typename I, typename V, typename C>
-void HollowHeap<I, V, C>::DeleteNodeRecursively(Node<I, V> *node) {
-  Node<I, V> *temp;
+template<typename V, typename C>
+void HollowHeap<V, C>::DeleteNodeRecursively(Node<V> *node) {
+  Node<V> *temp;
   while (node->head_childs != nullptr) {
     temp = node->head_childs->next_sibling;
     DeleteNodeRecursively(node->head_childs);
@@ -235,10 +249,10 @@ void HollowHeap<I, V, C>::DeleteNodeRecursively(Node<I, V> *node) {
   delete node;
 }
 
-template<typename I, typename V, typename C>
-HollowHeap<I, V, C>::~HollowHeap() {
+template<typename V, typename C>
+HollowHeap<V, C>::~HollowHeap() {
   for (auto it = roots_of_rank_.begin(); it != roots_of_rank_.end(); ++it) {
-    std::vector<Node<I, V>*> &l = **it;
+    std::vector<Node<V>*> &l = **it;
     for (const auto &n : l) {
       DeleteNodeRecursively(n);
     }
