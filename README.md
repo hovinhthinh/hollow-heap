@@ -1,4 +1,6 @@
 # hollow-heap
+[![Build Status](https://travis-ci.org/travis-ci/travis-web.svg?branch=master)](https://travis-ci.org/travis-ci/travis-web)
+
 Implementation of Hollow Heap (see document here [https://arxiv.org/abs/1510.06535](https://arxiv.org/abs/1510.06535))
 ## amortized complexity
 ```

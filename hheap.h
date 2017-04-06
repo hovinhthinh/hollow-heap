@@ -7,9 +7,6 @@
 // - Pop(): O(log N)
 // - Update(): O(1)
 
-// using hollow heap could reduce the running time complexity of dijktra to O(M + N log N)
-// very efficient for dense graph
-
 // V: type of value used for comparison
 // C: comparison class, default is min-heap; for max-heap, use std::greater<V>
 
@@ -33,7 +30,7 @@ struct Node {
   bool is_root;
 
   Node<V> *next_sibling; // siblings are stored in decreasing order of rank
-  Node<V> *head_childs; // point to the first child of childs vector
+  Node<V> *head_childs; // point to the first child of childs list
 
   Node(int32_t _id, V _value);
 };
