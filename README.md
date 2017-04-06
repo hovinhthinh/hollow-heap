@@ -94,3 +94,7 @@ hheap.Top(); // return pair<id, value> = <2, -1>
 ```
 ## application
 * One application is that using this data structure could reduce the complexity of Dijkstra algorithm to O(M + NlogN) instead of O(MlogN) when using binary heap, which is very efficient for dense graph
+
+## License
+
+MIT licensed.

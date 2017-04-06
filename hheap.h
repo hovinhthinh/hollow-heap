@@ -1,5 +1,4 @@
 // hollow heap
-// author: [Vinh Thinh Ho]
 
 // amortized running time complexity:
 // - Push(): O(1)
