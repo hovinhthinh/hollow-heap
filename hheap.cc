@@ -22,13 +22,13 @@ inline std::vector<Node<V>*>& HollowHeap<V, C>::RootsAtRank(uint32_t rank) {
 
 template<typename V, typename C>
 HollowHeap<V, C>::HollowHeap() :
-    size_(0), comparator_(), min_id_(nullptr), roots_of_rank_(), node_map_(), n_ids_(
+    size_(0), comparator_(), min_node_(nullptr), roots_of_rank_(), node_map_(), n_ids_(
         0), node_map_arr_(nullptr) {
 }
 
 template<typename V, typename C>
 HollowHeap<V, C>::HollowHeap(uint32_t n_ids) :
-    size_(0), comparator_(), min_id_(nullptr), roots_of_rank_(), node_map_(), n_ids_(
+    size_(0), comparator_(), min_node_(nullptr), roots_of_rank_(), node_map_(), n_ids_(
         n_ids), node_map_arr_(new Node<V>*[n_ids_]) {
   Node<V> **arr = node_map_arr_.get();
   std::fill(arr, arr + n_ids_, nullptr);
@@ -58,8 +58,8 @@ bool HollowHeap<V, C>::Push(uint32_t id, V value) {
   RootsAtRank(0).emplace_back(new_node);
 
   ++size_;
-  if (min_id_ == nullptr || comparator_(value, min_id_->value)) {
-    min_id_ = new_node;
+  if (min_node_ == nullptr || comparator_(value, min_node_->value)) {
+    min_node_ = new_node;
   }
   return true;
 }
@@ -71,14 +71,14 @@ void HollowHeap<V, C>::Push(V value) {
   RootsAtRank(0).emplace_back(new_node);
 
   ++size_;
-  if (min_id_ == nullptr || comparator_(value, min_id_->value)) {
-    min_id_ = new_node;
+  if (min_node_ == nullptr || comparator_(value, min_node_->value)) {
+    min_node_ = new_node;
   }
 }
 
 template<typename V, typename C>
 std::pair<int32_t, V> HollowHeap<V, C>::Top() const {
-  return std::make_pair(min_id_->id, min_id_->value);
+  return std::make_pair(min_node_->id, min_node_->value);
 }
 
 template<typename V, typename C>
@@ -105,14 +105,14 @@ template<typename V, typename C>
 void HollowHeap<V, C>::Pop() {
   Node<V> *temp, *temp_2;
   // remove id & make top hollow
-  if (min_id_->id >= 0) {
+  if (min_node_->id >= 0) {
     if (n_ids_) {
-      node_map_arr_[min_id_->id] = nullptr;
+      node_map_arr_[min_node_->id] = nullptr;
     } else {
-      node_map_.erase(min_id_->id);
+      node_map_.erase(min_node_->id);
     }
   }
-  min_id_->is_hollow = true;
+  min_node_->is_hollow = true;
 
   // recursively remove hollow roots
   for (auto it = roots_of_rank_.rbegin(); it != roots_of_rank_.rend(); ++it) {
@@ -160,12 +160,12 @@ void HollowHeap<V, C>::Pop() {
   roots_of_rank_.resize(max_rank + 1);
 
   // update min-id
-  min_id_ = nullptr;
+  min_node_ = nullptr;
   for (auto it = roots_of_rank_.begin(); it != roots_of_rank_.end(); ++it) {
     std::vector<Node<V>*> &l = **it;
     if (l.size()) {
-      if (min_id_ == nullptr || comparator_(l[0]->value, min_id_->value)) {
-        min_id_ = l[0];
+      if (min_node_ == nullptr || comparator_(l[0]->value, min_node_->value)) {
+        min_node_ = l[0];
       }
     }
   }
@@ -194,8 +194,8 @@ bool HollowHeap<V, C>::Update(uint32_t id, V value) {
   // if id is root
   if (current_node->is_root) {
     current_node->value = value;
-    if (comparator_(current_node->value, min_id_->value)) {
-      min_id_ = current_node;
+    if (comparator_(current_node->value, min_node_->value)) {
+      min_node_ = current_node;
     }
     return true;
   }
@@ -221,8 +221,8 @@ bool HollowHeap<V, C>::Update(uint32_t id, V value) {
   RootsAtRank(new_node->rank).emplace_back(new_node);
 
   // update min-id
-  if (comparator_(new_node->value, min_id_->value)) {
-    min_id_ = new_node;
+  if (comparator_(new_node->value, min_node_->value)) {
+    min_node_ = new_node;
   }
 
   return true;
@@ -236,6 +236,49 @@ uint32_t HollowHeap<V, C>::size() const {
 template<typename V, typename C>
 bool HollowHeap<V, C>::empty() const {
   return size_ == 0;
+}
+
+template<typename V, typename C>
+bool HollowHeap<V, C>::ContainsId(uint32_t id) const {
+  if (n_ids_) {
+    return node_map_arr_[id] != nullptr;
+  } else {
+    return node_map_.find(id) != node_map_.end();
+  }
+}
+
+template<typename V, typename C>
+V HollowHeap<V, C>::Get(uint32_t id) const {
+  if (n_ids_) {
+    return node_map_arr_[id]->value;
+  } else {
+    return node_map_[id]->value;
+  }
+}
+
+template<typename V, typename C>
+void HollowHeap<V, C>::PopId(uint32_t id) {
+  Node<V> *node;
+  // find node corresponding to id
+  if (n_ids_) {
+    node = node_map_arr_[id];
+  } else {
+    node = node_map_[id];
+  }
+
+  // pop
+  if (node == min_node_) {
+    Pop();
+  } else {
+    node->is_hollow = true;
+    if (n_ids_) {
+      node_map_arr_[id] = nullptr;
+    } else {
+      node_map_.erase(id);
+    }
+    // reduce size;
+    --size_;
+  }
 }
 
 template<typename V, typename C>

@@ -44,7 +44,7 @@ class HollowHeap {
 private:
   uint32_t size_;
   C comparator_;
-  Node<V> *min_id_;
+  Node<V> *min_node_;
 
   std::vector<std::vector<Node<V>*>*> roots_of_rank_;
   std::unordered_map<uint32_t, Node<V>*> node_map_;
@@ -74,6 +74,12 @@ public:
   uint32_t size() const;
 
   bool empty() const;
+
+  bool ContainsId(uint32_t id) const;
+
+  V Get(uint32_t id) const;
+
+  void PopId(uint32_t id);
 
   ~HollowHeap();
 };
