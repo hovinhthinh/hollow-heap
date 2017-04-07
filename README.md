@@ -14,7 +14,14 @@ Update: O(1)
 ```
 template<typename V, typename C = std::less<V>> class HollowHeap; 
 ```
-* default is min-heap; for max-heap, use `C = std::greater<V>`
+* V: value type
+* C: comparing class with declaration:
+```
+class C {
+  bool operator(const V& v1, const V& v2) const;
+};
+```
+* default is min-heap; for max-heap, could use `C = std::greater<V>` for built-in type V
 ### constructor
 ```
 HollowHeap();
